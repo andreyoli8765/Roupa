@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELEGANCE | Lista de Desejos</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <h1>ELEGANCE</h1>
+                <p>Moda Profissional</p>
+            </div>
+            <nav>
+                <ul class="menu">
+                    <li><a href="index.html">Início</a></li>
+                    <li><a href="index.html#colecao">Coleção</a></li>
+                    <li><a href="index.html#destaque">Destaques</a></li>
+                    <li><a href="index.html#sobre">Sobre</a></li>
+                    <li><a href="index.html#contato">Contato</a></li>
+                </ul>
+                <div class="mobile-menu-icon">
+                    <i class="fas fa-bars"></i>
+                </div>
+            </nav>
+            <div class="cart">
+                <a href="carrinho.html"><i class="fas fa-shopping-cart"></i> <span>0</span></a>
+            </div>
+        </div>
+    </header>
+
+    <section id="wishlist-page" class="wishlist-page">
+        <div class="container">
+            <div class="section-header">
+                <h2>Sua Lista de Desejos</h2>
+                <p>Produtos favoritos para adquirir posteriormente</p>
+            </div>
+            
+            <div class="wishlist-content">
+                <div id="wishlist-items" class="wishlist-items">
+                    <!-- Itens da lista de desejos serão inseridos aqui via JavaScript -->
+                </div>
+                
+                <div class="wishlist-sidebar">
+                    <div class="wishlist-summary">
+                        <h3>Resumo</h3>
+                        <div class="summary-row">
+                            <span>Total de itens</span>
+                            <span id="wishlist-count">0</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Valor total</span>
+                            <span id="wishlist-total">R$ 0,00</span>
+                        </div>
+                        <div class="wishlist-actions">
+                            <button id="add-all-to-cart" class="btn">Adicionar Todos ao Carrinho</button>
+                            <button id="clear-wishlist" class="btn-small">Limpar Lista de Desejos</button>
+                        </div>
+                    </div>
+                    
+                    <div class="share-wishlist">
+                        <h3>Compartilhe sua Lista</h3>
+                        <p>Envie sua lista de desejos para amigos e familiares</p>
+                        <div class="share-buttons">
+                            <a href="#" class="share-btn" data-platform="whatsapp"><i class="fab fa-whatsapp"></i></a>
+                            <a href="#" class="share-btn" data-platform="facebook"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" class="share-btn" data-platform="twitter"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="share-btn" data-platform="email"><i class="fas fa-envelope"></i></a>
+                            <a href="#" class="share-btn" data-platform="copy"><i class="fas fa-copy"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="recommended-products">
+        <div class="container">
+            <div class="section-header">
+                <h2>Recomendados Para Você</h2>
+                <p>Produtos que combinam com seus itens favoritos</p>
+            </div>
+            <div class="products recommended-slider">
+                <!-- Produtos recomendados serão inseridos aqui via JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h2>ELEGANCE</h2>
+                    <p>Moda Profissional</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h3>Institucional</h3>
+                        <ul>
+                            <li><a href="#">Sobre Nós</a></li>
+                            <li><a href="#">Nossas Lojas</a></li>
+                            <li><a href="#">Trabalhe Conosco</a></li>
+                            <li><a href="#">Sustentabilidade</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Ajuda</h3>
+                        <ul>
+                            <li><a href="#">Entregas</a></li>
+                            <li><a href="#">Trocas e Devoluções</a></li>
+                            <li><a href="#">Perguntas Frequentes</a></li>
+                            <li><a href="#">Política de Privacidade</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Categorias</h3>
+                        <ul>
+                            <li><a href="#">Feminino</a></li>
+                            <li><a href="#">Masculino</a></li>
+                            <li><a href="#">Acessórios</a></li>
+                            <li><a href="#">Ofertas</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Pagamento</h3>
+                        <div class="payment-methods">
+                            <i class="fab fa-cc-visa"></i>
+                            <i class="fab fa-cc-mastercard"></i>
+                            <i class="fab fa-cc-amex"></i>
+                            <i class="fab fa-cc-paypal"></i>
+                            <i class="fas fa-barcode"></i>
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 ELEGANCE - Todos os direitos reservados.</p>
+                <p>Desenvolvido por <a href="#">Seu Nome</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <div class="back-to-top">
+        <i class="fas fa-chevron-up"></i>
+    </div>
+</body>
+</html>

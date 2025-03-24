@@ -48,7 +48,7 @@ const productDatabase = [
     {
         id: 5,
         name: "Camisa Listrada 100% algodão",
-        category: "acessorios",
+        category: "masculino",
         price: 90,
         oldPrice: null,
         description: "Gravata confeccionada em seda italiana de alta qualidade. Design elegante e atemporal que complementa qualquer traje social ou executivo.",
@@ -63,7 +63,7 @@ const productDatabase = [
     {
         id: 6,
         name: "Camisa Listrada 100% algodão",
-        category: "acessorios",
+        category: "masculino",
         price: 90,
         oldPrice: null,
         description: "Bolsa executiva feminina produzida em couro legítimo, com compartimentos internos organizados para notebooks, documentos e objetos pessoais. Elegância e praticidade para o dia a dia.",
@@ -78,7 +78,7 @@ const productDatabase = [
     {
         id: 6,
         name: "Camisa Basica",
-        category: "acessorios",
+        category: "masculino",
         price: 90,
         oldPrice: null,
         description: "Bolsa executiva feminina produzida em couro legítimo, com compartimentos internos organizados para notebooks, documentos e objetos pessoais. Elegância e praticidade para o dia a dia.",
@@ -93,7 +93,7 @@ const productDatabase = [
     {
         id: 6,
         name: "Camisa Basica",
-        category: "acessorios",
+        category: "masculino",
         price: 90,
         oldPrice: null,
         description: "Bolsa executiva feminina produzida em couro legítimo, com compartimentos internos organizados para notebooks, documentos e objetos pessoais. Elegância e praticidade para o dia a dia.",
@@ -170,8 +170,9 @@ const productDatabase = [
 // Banco de dados de imagens para os banners e backgrounds
 const imageDatabase = {
     banners: {
-        hero: "Imagens/wortec 2.png",
-        newsletter: "Imagens/wortec 2.png"
+       hero: "Imagens/wortec 2.png",
+       newsletter: "Imagens/wortec 2.png"
+       
     },
     featured: {
         large: "images/destaque-grande.jpg",
@@ -188,6 +189,13 @@ const imageDatabase = {
 
 // Banco de dados para armazenar o carrinho de compras
 let cartDatabase = {
+    items: [],
+    total: 0,
+    count: 0
+};
+
+// Banco de dados para armazenar a lista de desejos
+let wishlistDatabase = {
     items: [],
     total: 0,
     count: 0
@@ -216,6 +224,19 @@ function updateCartIcon() {
     }
 }
 
+// Carregar lista de desejos do localStorage se existir
+function loadWishlist() {
+    const savedWishlist = localStorage.getItem('eleganceWishlist');
+    if (savedWishlist) {
+        wishlistDatabase = JSON.parse(savedWishlist);
+    }
+}
+
+// Salvar lista de desejos no localStorage
+function saveWishlist() {
+    localStorage.setItem('eleganceWishlist', JSON.stringify(wishlistDatabase));
+}
+
 // Esperar o DOM ser carregado completamente
 document.addEventListener('DOMContentLoaded', function() {
     // Elementos do DOM
@@ -230,6 +251,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Carregar o carrinho existente
     loadCart();
+    
+    // Carregar a lista de desejos
+    loadWishlist();
     
     // Renderizar produtos com dados do banco de dados
     renderProducts();
@@ -268,100 +292,28 @@ document.addEventListener('DOMContentLoaded', function() {
         renderRecommendedProducts();
     }
     
-    // Função para renderizar produtos recomendados na página do carrinho
-    function renderRecommendedProducts() {
-        const recommendedSlider = document.querySelector('.recommended-slider');
-        if (!recommendedSlider) return;
-        
-        // Limpa o slider
-        recommendedSlider.innerHTML = '';
-        
-        // Se não houver itens no carrinho, recomenda produtos populares
-        let productsToRecommend = [];
-        
-        if (cartDatabase.items.length === 0) {
-            // Recomenda os produtos melhor avaliados
-            productsToRecommend = [...productDatabase]
-                .sort((a, b) => b.rating - a.rating)
-                .slice(0, 4);
-        } else {
-            // Recomenda produtos da mesma categoria dos itens no carrinho
-            const cartCategories = [...new Set(
-                cartDatabase.items.map(item => {
-                    const product = productDatabase.find(p => p.id === item.productId);
-                    return product ? product.category : null;
-                }).filter(Boolean)
-            )];
-            
-            // Filtra produtos das mesmas categorias, excluindo os que já estão no carrinho
-            productsToRecommend = productDatabase.filter(product => 
-                cartCategories.includes(product.category) && 
-                !cartDatabase.items.some(item => item.productId === product.id)
-            ).slice(0, 4);
-            
-            // Se não tiver produtos suficientes, adiciona os melhor avaliados
-            if (productsToRecommend.length < 4) {
-                const highRatedProducts = [...productDatabase]
-                    .sort((a, b) => b.rating - a.rating)
-                    .filter(product => !productsToRecommend.includes(product) && 
-                        !cartDatabase.items.some(item => item.productId === product.id));
-                
-                productsToRecommend = [...productsToRecommend, ...highRatedProducts].slice(0, 4);
-            }
+    // Inicializar página da lista de desejos se estiver na página
+    if (window.location.href.includes('desejos.html')) {
+        renderWishlistPage();
+    }
+    
+    // Aplicar estilo inicial aos itens que já estão na lista de desejos
+    document.querySelectorAll('.product-actions button:nth-child(1)').forEach(button => {
+        const productId = parseInt(button.closest('.product-card')?.getAttribute('data-product-id'));
+        if (productId && isInWishlist(productId)) {
+            button.querySelector('i').style.color = 'red';
         }
+    });
+    
+    // Adicionar link para lista de desejos no header
+    const cartElement = document.querySelector('.cart');
+    if (cartElement) {
+        const wishlistLink = document.createElement('div');
+        wishlistLink.className = 'wishlist';
+        wishlistLink.innerHTML = '<a href="desejos.html"><i class="fas fa-heart"></i></a>';
+        wishlistLink.style.marginRight = '15px';
         
-        // Renderiza os produtos recomendados
-        productsToRecommend.forEach(product => {
-            const productCard = document.createElement('div');
-            productCard.className = 'product-card';
-            productCard.setAttribute('data-category', product.category);
-            productCard.setAttribute('data-product-id', product.id);
-            
-            // Configura o HTML do produto
-            productCard.innerHTML = `
-                <div class="product-image">
-                    <img src="${product.image}" alt="${product.name}">
-                    ${product.tag ? `<div class="product-tag">${product.tag}</div>` : ''}
-                    <div class="product-actions">
-                        <button><i class="fas fa-heart"></i></button>
-                        <button><i class="fas fa-shopping-cart"></i></button>
-                        <button><i class="fas fa-search"></i></button>
-                    </div>
-                </div>
-                <div class="product-info">
-                    <h3>${product.name}</h3>
-                    <div class="product-rating">
-                        ${generateRatingStars(product.rating)}
-                        <span>(${product.reviews})</span>
-                    </div>
-                    <div class="product-price">
-                        ${product.oldPrice ? `<span class="old-price">R$ ${product.oldPrice.toFixed(2)}</span>` : ''}
-                        <span class="current-price">R$ ${product.price.toFixed(2)}</span>
-                    </div>
-                </div>
-            `;
-            
-            // Adiciona o produto ao slider
-            recommendedSlider.appendChild(productCard);
-            
-            // Adiciona evento de clique para abrir modal
-            productCard.querySelector('.product-actions button:nth-child(3)').addEventListener('click', (e) => {
-                e.stopPropagation();
-                openProductModal(product.id);
-            });
-            
-            // Adiciona evento de clique para adicionar ao carrinho
-            productCard.querySelector('.product-actions button:nth-child(2)').addEventListener('click', (e) => {
-                e.stopPropagation();
-                addToCart(product.id, 1);
-            });
-            
-            // Adiciona evento de clique para favoritos
-            productCard.querySelector('.product-actions button:nth-child(1)').addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleFavorite(e.currentTarget);
-            });
-        });
+        cartElement.parentNode.insertBefore(wishlistLink, cartElement);
     }
     
     // Sistema de filtragem de produtos
@@ -566,7 +518,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             }
-            
             // Inicia o contador quando a seção estiver visível
             const observer = new IntersectionObserver((entries) => {
                 if (entries[0].isIntersecting) {
@@ -696,7 +647,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <img src="${product.image}" alt="${product.name}">
                     ${product.tag ? `<div class="product-tag">${product.tag}</div>` : ''}
                     <div class="product-actions">
-                        <button><i class="fas fa-heart"></i></button>
+                        <button><i class="fas fa-heart ${isInWishlist(product.id) ? 'active' : ''}"></i></button>
                         <button><i class="fas fa-shopping-cart"></i></button>
                         <button><i class="fas fa-search"></i></button>
                     </div>
@@ -798,19 +749,22 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Função para alternar favorito
     function toggleFavorite(button) {
+        const productId = parseInt(button.closest('.product-card').getAttribute('data-product-id'));
         const icon = button.querySelector('i');
         
-        if (icon.style.color === 'red') {
-            icon.style.color = '';
-            showNotification('Produto removido dos favoritos!');
-        } else {
+        const wasAdded = toggleWishlistItem(productId);
+        
+        if (wasAdded) {
             icon.style.color = 'red';
             
             // Obtém o produto pai
             const product = button.closest('.product-card');
             const productName = product.querySelector('h3').textContent;
             
-            showNotification(`${productName} adicionado aos favoritos!`);
+            showNotification(`${productName} adicionado à lista de desejos!`);
+        } else {
+            icon.style.color = '';
+            showNotification('Produto removido da lista de desejos!');
         }
     }
     
@@ -905,6 +859,9 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
+        // Verifica se está na lista de desejos
+        const inWishlist = isInWishlist(productId);
+        
         // Preenche o modal com os dados do produto
         modal.querySelector('.modal-title').textContent = product.name;
         modal.querySelector('.modal-image img').src = product.image;
@@ -988,6 +945,18 @@ document.addEventListener('DOMContentLoaded', function() {
         // Define o ID do produto no botão de adicionar ao carrinho
         const addToCartBtn = modal.querySelector('.add-to-cart-modal');
         addToCartBtn.dataset.productId = product.id;
+        
+        // Configura botão de lista de desejos
+        const wishlistBtn = modal.querySelector('.wishlist-modal');
+        const wishlistIcon = wishlistBtn.querySelector('i');
+        
+        if (inWishlist) {
+            wishlistIcon.style.color = 'red';
+            wishlistBtn.innerHTML = '<i class="fas fa-heart" style="color: red;"></i> Remover da Lista de Desejos';
+        } else {
+            wishlistIcon.style.color = '';
+            wishlistBtn.innerHTML = '<i class="fas fa-heart"></i> Adicionar à Lista de Desejos';
+        }
         
         // Reseta a quantidade
         modal.querySelector('.quantity-selector input').value = 1;
@@ -1091,21 +1060,32 @@ document.addEventListener('DOMContentLoaded', function() {
     const wishlistModal = modal.querySelector('.wishlist-modal');
     
     wishlistModal.addEventListener('click', function() {
+        const productId = parseInt(document.querySelector('.add-to-cart-modal').dataset.productId);
+        const wasAdded = toggleWishlistItem(productId);
         const icon = this.querySelector('i');
         
-        if (icon.style.color === 'red') {
-            icon.style.color = '';
-            this.innerHTML = '<i class="fas fa-heart"></i> Adicionar à Lista de Desejos';
-            showNotification('Produto removido dos favoritos!');
-        } else {
+        if (wasAdded) {
             icon.style.color = 'red';
-            this.innerHTML = '<i class="fas fa-heart"></i> Remover da Lista de Desejos';
+            this.innerHTML = '<i class="fas fa-heart" style="color: red;"></i> Remover da Lista de Desejos';
             
             // Obtém o nome do produto
-            const productName = modal.querySelector('.modal-title').textContent;
+            const productName = document.querySelector('.modal-title').textContent;
             
-            showNotification(`${productName} adicionado aos favoritos!`);
+            showNotification(`${productName} adicionado à lista de desejos!`);
+        } else {
+            icon.style.color = '';
+            this.innerHTML = '<i class="fas fa-heart"></i> Adicionar à Lista de Desejos';
+            showNotification('Produto removido da lista de desejos!');
         }
+        
+        // Atualiza o ícone de coração no card do produto
+        const productCards = document.querySelectorAll(`.product-card[data-product-id="${productId}"]`);
+        productCards.forEach(card => {
+            const heartIcon = card.querySelector('.product-actions button:first-child i');
+            if (heartIcon) {
+                heartIcon.style.color = wasAdded ? 'red' : '';
+            }
+        });
     });
     
     // Ao clicar no ícone do carrinho no header
@@ -1410,6 +1390,102 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Função para renderizar produtos recomendados na página do carrinho
+    function renderRecommendedProducts() {
+        const recommendedSlider = document.querySelector('.recommended-slider');
+        if (!recommendedSlider) return;
+        
+        // Limpa o slider
+        recommendedSlider.innerHTML = '';
+        
+        // Se não houver itens no carrinho, recomenda produtos populares
+        let productsToRecommend = [];
+        
+        if (cartDatabase.items.length === 0) {
+            // Recomenda os produtos melhor avaliados
+            productsToRecommend = [...productDatabase]
+                .sort((a, b) => b.rating - a.rating)
+                .slice(0, 4);
+        } else {
+            // Recomenda produtos da mesma categoria dos itens no carrinho
+            const cartCategories = [...new Set(
+                cartDatabase.items.map(item => {
+                    const product = productDatabase.find(p => p.id === item.productId);
+                    return product ? product.category : null;
+                }).filter(Boolean)
+            )];
+            
+            // Filtra produtos das mesmas categorias, excluindo os que já estão no carrinho
+            productsToRecommend = productDatabase.filter(product => 
+                cartCategories.includes(product.category) && 
+                !cartDatabase.items.some(item => item.productId === product.id)
+            ).slice(0, 4);
+            
+            // Se não tiver produtos suficientes, adiciona os melhor avaliados
+            if (productsToRecommend.length < 4) {
+                const highRatedProducts = [...productDatabase]
+                    .sort((a, b) => b.rating - a.rating)
+                    .filter(product => !productsToRecommend.includes(product) && 
+                        !cartDatabase.items.some(item => item.productId === product.id));
+                
+                productsToRecommend = [...productsToRecommend, ...highRatedProducts].slice(0, 4);
+            }
+        }
+        
+        // Renderiza os produtos recomendados
+        productsToRecommend.forEach(product => {
+            const productCard = document.createElement('div');
+            productCard.className = 'product-card';
+            productCard.setAttribute('data-category', product.category);
+            productCard.setAttribute('data-product-id', product.id);
+            
+            // Configura o HTML do produto
+            productCard.innerHTML = `
+                <div class="product-image">
+                    <img src="${product.image}" alt="${product.name}">
+                    ${product.tag ? `<div class="product-tag">${product.tag}</div>` : ''}
+                    <div class="product-actions">
+                        <button><i class="fas fa-heart ${isInWishlist(product.id) ? 'active' : ''}"></i></button>
+                        <button><i class="fas fa-shopping-cart"></i></button>
+                        <button><i class="fas fa-search"></i></button>
+                    </div>
+                </div>
+                <div class="product-info">
+                    <h3>${product.name}</h3>
+                    <div class="product-rating">
+                        ${generateRatingStars(product.rating)}
+                        <span>(${product.reviews})</span>
+                    </div>
+                    <div class="product-price">
+                        ${product.oldPrice ? `<span class="old-price">R$ ${product.oldPrice.toFixed(2)}</span>` : ''}
+                        <span class="current-price">R$ ${product.price.toFixed(2)}</span>
+                    </div>
+                </div>
+            `;
+            
+            // Adiciona o produto ao slider
+            recommendedSlider.appendChild(productCard);
+            
+            // Adiciona evento de clique para abrir modal
+            productCard.querySelector('.product-actions button:nth-child(3)').addEventListener('click', (e) => {
+                e.stopPropagation();
+                openProductModal(product.id);
+            });
+            
+            // Adiciona evento de clique para adicionar ao carrinho
+            productCard.querySelector('.product-actions button:nth-child(2)').addEventListener('click', (e) => {
+                e.stopPropagation();
+                addToCart(product.id, 1);
+            });
+            
+            // Adiciona evento de clique para favoritos
+            productCard.querySelector('.product-actions button:nth-child(1)').addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleFavorite(e.currentTarget);
+            });
+        });
+    }
+    
     // Botão para finalizar compra
     if (document.querySelector('#finish-purchase')) {
         document.querySelector('#finish-purchase').addEventListener('click', function(e) {
@@ -1435,6 +1511,351 @@ document.addEventListener('DOMContentLoaded', function() {
                 saveCart();
                 renderCartPage();
             }, 2000);
+        });
+    }
+    
+    // Adicionar/Remover da lista de desejos
+    function toggleWishlistItem(productId) {
+        const productIndex = wishlistDatabase.items.findIndex(item => item.productId === productId);
+        
+        if (productIndex !== -1) {
+            // Remover se já existe
+            wishlistDatabase.items.splice(productIndex, 1);
+            updateWishlistTotals();
+            saveWishlist();
+            return false; // Indica que foi removido
+        } else {
+            // Adicionar se não existe
+            const product = productDatabase.find(p => p.id === productId);
+            
+            if (!product) {
+                showNotification('Produto não encontrado!', 'error');
+                return false;
+            }
+            
+            wishlistDatabase.items.push({
+                productId: product.id,
+                name: product.name,
+                price: product.price,
+                oldPrice: product.oldPrice,
+                image: product.image,
+                rating: product.rating,
+                reviews: product.reviews,
+                sizes: product.sizes,
+                colors: product.colors
+            });
+            
+            updateWishlistTotals();
+            saveWishlist();
+            return true; // Indica que foi adicionado
+        }
+    }
+    
+    // Atualizar totais da lista de desejos
+    function updateWishlistTotals() {
+        wishlistDatabase.count = wishlistDatabase.items.length;
+        wishlistDatabase.total = wishlistDatabase.items.reduce((sum, item) => sum + item.price, 0);
+    }
+    
+    // Verificar se um produto está na lista de desejos
+    function isInWishlist(productId) {
+        return wishlistDatabase.items.some(item => item.productId === productId);
+    }
+    
+    // Renderizar página da lista de desejos
+    function renderWishlistPage() {
+        // Carregar a lista de desejos
+        loadWishlist();
+        
+        const wishlistContainer = document.querySelector('#wishlist-items');
+        const wishlistCount = document.querySelector('#wishlist-count');
+        const wishlistTotal = document.querySelector('#wishlist-total');
+        const addAllToCartBtn = document.querySelector('#add-all-to-cart');
+        const clearWishlistBtn = document.querySelector('#clear-wishlist');
+        
+        if (!wishlistContainer) return;
+        
+        // Atualizar contadores
+        if (wishlistCount) wishlistCount.textContent = wishlistDatabase.count;
+        if (wishlistTotal) wishlistTotal.textContent = `R$ ${wishlistDatabase.total.toFixed(2)}`;
+        
+        // Verificar se a lista está vazia
+        if (wishlistDatabase.items.length === 0) {
+            wishlistContainer.innerHTML = `
+                <div class="wishlist-empty">
+                    <i class="fas fa-heart"></i>
+                    <h3>Sua lista de desejos está vazia</h3>
+                    <p>Adicione produtos à sua lista de desejos para comprá-los mais tarde.</p>
+                    <a href="index.html#colecao" class="btn">Explorar Produtos</a>
+                </div>
+            `;
+            
+            // Desabilitar botões de ação
+            if (addAllToCartBtn) addAllToCartBtn.disabled = true;
+            if (clearWishlistBtn) clearWishlistBtn.disabled = true;
+            
+            return;
+        }
+        
+        // Habilitar botões de ação
+        if (addAllToCartBtn) addAllToCartBtn.disabled = false;
+        if (clearWishlistBtn) clearWishlistBtn.disabled = false;
+        
+        // Renderizar itens da lista
+        let wishlistHTML = '';
+        
+        wishlistDatabase.items.forEach(item => {
+            wishlistHTML += `
+                <div class="wishlist-item" data-product-id="${item.productId}">
+                    <div class="wishlist-item-image">
+                        <img src="${item.image}" alt="${item.name}">
+                    </div>
+                    <div class="wishlist-item-details">
+                        <h3>${item.name}</h3>
+                        <div class="product-rating">
+                            ${generateRatingStars(item.rating)}
+                            <span>(${item.reviews})</span>
+                        </div>
+                        <p>Disponível em: ${item.sizes.join(', ')}</p>
+                        <p>Cores: ${item.colors.join(', ')}</p>
+                        <div class="wishlist-item-price">
+                            ${item.oldPrice ? `<span class="old-price">R$ ${item.oldPrice.toFixed(2)}</span>` : ''}
+                            R$ ${item.price.toFixed(2)}
+                        </div>
+                        <div class="wishlist-item-actions">
+                            <button class="btn-small add-to-cart-btn" data-product-id="${item.productId}">
+                                <i class="fas fa-shopping-cart"></i> Adicionar ao Carrinho
+                            </button>
+                            <button class="btn-small view-product-btn" data-product-id="${item.productId}">
+                                <i class="fas fa-eye"></i> Ver Detalhes
+                            </button>
+                        </div>
+                    </div>
+                    <button class="wishlist-item-remove" data-product-id="${item.productId}">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            `;
+        });
+        
+        wishlistContainer.innerHTML = wishlistHTML;
+        
+        // Adicionar event listeners
+        // Botões de adicionar ao carrinho
+        document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const productId = parseInt(this.getAttribute('data-product-id'));
+                addToCart(productId, 1);
+            });
+        });
+        
+        // Botões de ver detalhes
+        document.querySelectorAll('.view-product-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const productId = parseInt(this.getAttribute('data-product-id'));
+                openProductModal(productId);
+            });
+        });
+        
+        // Botões de remover
+        document.querySelectorAll('.wishlist-item-remove').forEach(button => {
+            button.addEventListener('click', function() {
+                const productId = parseInt(this.getAttribute('data-product-id'));
+                const wasRemoved = toggleWishlistItem(productId);
+                
+                // Remover o item visualmente com animação
+                const item = this.closest('.wishlist-item');
+                item.style.opacity = '0';
+                setTimeout(() => {
+                    item.style.height = '0';
+                    item.style.margin = '0';
+                    item.style.padding = '0';
+                    item.style.overflow = 'hidden';
+                    
+                    setTimeout(() => {
+                        renderWishlistPage();
+                    }, 300);
+                }, 300);
+                
+                showNotification('Item removido da lista de desejos!');
+            });
+        });
+        
+        // Adicionar todos ao carrinho
+        if (addAllToCartBtn) {
+            addAllToCartBtn.addEventListener('click', function() {
+                wishlistDatabase.items.forEach(item => {
+                    addToCart(item.productId, 1);
+                });
+                
+                showNotification('Todos os itens foram adicionados ao carrinho!', 'success');
+            });
+        }
+        
+        // Limpar lista de desejos
+        if (clearWishlistBtn) {
+            clearWishlistBtn.addEventListener('click', function() {
+                if (confirm('Tem certeza que deseja limpar sua lista de desejos?')) {
+                    wishlistDatabase.items = [];
+                    updateWishlistTotals();
+                    saveWishlist();
+                    renderWishlistPage();
+                    showNotification('Lista de desejos foi limpa!');
+                }
+            });
+        }
+        
+        // Configurar botões de compartilhamento
+        document.querySelectorAll('.share-btn').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const platform = this.getAttribute('data-platform');
+                const url = window.location.href;
+                const title = 'Minha lista de desejos na ELEGANCE';
+                const text = 'Confira os produtos que eu adicionei à minha lista de desejos na ELEGANCE!';
+                
+                let shareUrl = '';
+                
+                switch (platform) {
+                    case 'whatsapp':
+                        shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text + ' ' + url)}`;
+                        break;
+                    case 'facebook':
+                        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+                        break;
+                    case 'twitter':
+                        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+                        break;
+                    case 'email':
+                        shareUrl = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(text + '\n\n' + url)}`;
+                        break;
+                    case 'copy':
+                        navigator.clipboard.writeText(url).then(() => {
+                            showNotification('Link copiado para a área de transferência!', 'success');
+                        });
+                        return;
+                    default:
+                        return;
+                }
+                
+                window.open(shareUrl, '_blank');
+            });
+        });
+        
+        // Renderizar produtos recomendados
+        renderWishlistRecommendedProducts();
+    }
+    
+    // Renderizar produtos recomendados na página de lista de desejos
+    function renderWishlistRecommendedProducts() {
+        const recommendedSlider = document.querySelector('.recommended-slider');
+        if (!recommendedSlider) return;
+        
+        // Limpar o slider
+        recommendedSlider.innerHTML = '';
+        
+        // Se não houver itens na lista de desejos, mostrar produtos populares
+        let productsToRecommend = [];
+        
+        if (wishlistDatabase.items.length === 0) {
+            // Recomenda os produtos melhor avaliados
+            productsToRecommend = [...productDatabase]
+                .sort((a, b) => b.rating - a.rating)
+                .slice(0, 4);
+        } else {
+            // Recomenda produtos da mesma categoria dos itens na lista de desejos
+            const wishlistCategories = [...new Set(
+                wishlistDatabase.items.map(item => {
+                    const product = productDatabase.find(p => p.id === item.productId);
+                    return product ? product.category : null;
+                }).filter(Boolean)
+            )];
+            
+            // Filtra produtos das mesmas categorias, excluindo os que já estão na lista de desejos
+            productsToRecommend = productDatabase.filter(product => 
+                wishlistCategories.includes(product.category) && 
+                !wishlistDatabase.items.some(item => item.productId === product.id)
+            ).slice(0, 4);
+            
+            // Se não tiver produtos suficientes, adiciona os melhor avaliados
+            if (productsToRecommend.length < 4) {
+                const highRatedProducts = [...productDatabase]
+                    .sort((a, b) => b.rating - a.rating)
+                    .filter(product => !productsToRecommend.includes(product) && 
+                        !wishlistDatabase.items.some(item => item.productId === product.id));
+                
+                productsToRecommend = [...productsToRecommend, ...highRatedProducts].slice(0, 4);
+            }
+        }
+        
+        // Renderiza os produtos recomendados
+        productsToRecommend.forEach(product => {
+            const productCard = document.createElement('div');
+            productCard.className = 'product-card';
+            productCard.setAttribute('data-category', product.category);
+            productCard.setAttribute('data-product-id', product.id);
+            
+            // Configura o HTML do produto
+            productCard.innerHTML = `
+                <div class="product-image">
+                    <img src="${product.image}" alt="${product.name}">
+                    ${product.tag ? `<div class="product-tag">${product.tag}</div>` : ''}
+                    <div class="product-actions">
+                        <button class="wishlist-btn" data-product-id="${product.id}">
+                            <i class="fas fa-heart ${isInWishlist(product.id) ? 'active' : ''}"></i>
+                        </button>
+                        <button class="cart-btn" data-product-id="${product.id}">
+                            <i class="fas fa-shopping-cart"></i>
+                        </button>
+                        <button class="view-btn" data-product-id="${product.id}">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="product-info">
+                    <h3>${product.name}</h3>
+                    <div class="product-rating">
+                        ${generateRatingStars(product.rating)}
+                        <span>(${product.reviews})</span>
+                    </div>
+                    <div class="product-price">
+                        ${product.oldPrice ? `<span class="old-price">R$ ${product.oldPrice.toFixed(2)}</span>` : ''}
+                        <span class="current-price">R$ ${product.price.toFixed(2)}</span>
+                    </div>
+                </div>
+            `;
+            
+            // Adiciona o produto ao slider
+            recommendedSlider.appendChild(productCard);
+            
+            // Adiciona evento de clique para abrir modal
+            productCard.querySelector('.view-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                openProductModal(product.id);
+            });
+            
+            // Adiciona evento de clique para adicionar ao carrinho
+            productCard.querySelector('.cart-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                addToCart(product.id, 1);
+            });
+            
+            // Adiciona evento de clique para favoritos
+            productCard.querySelector('.wishlist-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                const productId = parseInt(e.currentTarget.getAttribute('data-product-id'));
+                const wasAdded = toggleWishlistItem(productId);
+                
+                const icon = e.currentTarget.querySelector('i');
+                if (wasAdded) {
+                    icon.classList.add('active');
+                    showNotification(`${product.name} adicionado à lista de desejos!`);
+                } else {
+                    icon.classList.remove('active');
+                    showNotification('Produto removido da lista de desejos!');
+                }
+            });
         });
     }
     
