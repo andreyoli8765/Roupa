@@ -222,7 +222,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const mobileMenuIcon = document.querySelector('.mobile-menu-icon');
     const menu = document.querySelector('.menu');
     const filterBtns = document.querySelectorAll('.filter-btn');
-    const products = document.querySelectorAll('.product-card');
     const testimonialSlides = document.querySelectorAll('.testimonial-slide');
     const testimonialDots = document.querySelectorAll('.dot');
     const prevBtn = document.querySelector('.testimonial-prev');
@@ -376,6 +375,9 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Obtém o valor do filtro
             const filterValue = this.getAttribute('data-filter');
+            
+            // Obtém todos os cartões de produto após a renderização
+            const products = document.querySelectorAll('.product-card');
             
             // Filtra os produtos
             products.forEach(product => {
@@ -580,29 +582,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Iniciar contador
     countStats();
     
-    // Carrinho de compras
-    const addToCartButtons = document.querySelectorAll('.product-actions button:nth-child(2)');
-    
-    addToCartButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.stopPropagation();
-            
-            // Obtém o produto pai e seu ID
-            const product = this.closest('.product-card');
-            const productId = parseInt(product.getAttribute('data-product-id'));
-            
-            // Adiciona ao carrinho
-            addToCart(productId, 1);
-            
-            // Efeito visual de animação no ícone do carrinho
-            const cart = document.querySelector('.cart a i');
-            cart.classList.add('fa-bounce');
-            setTimeout(() => {
-                cart.classList.remove('fa-bounce');
-            }, 1000);
-        });
-    });
-    
     // Função para adicionar produto ao carrinho
     function addToCart(productId, quantity, size = null, color = null) {
         // Encontra o produto no banco de dados
@@ -646,6 +625,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Notifica o usuário
         showNotification(`${product.name} adicionado ao carrinho!`);
+        
+        // Efeito visual de animação no ícone do carrinho
+        const cart = document.querySelector('.cart a i');
+        cart.classList.add('fa-bounce');
+        setTimeout(() => {
+            cart.classList.remove('fa-bounce');
+        }, 1000);
     }
     
     // Função para atualizar totais do carrinho
@@ -810,11 +796,29 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Função para alternar favorito
+    function toggleFavorite(button) {
+        const icon = button.querySelector('i');
+        
+        if (icon.style.color === 'red') {
+            icon.style.color = '';
+            showNotification('Produto removido dos favoritos!');
+        } else {
+            icon.style.color = 'red';
+            
+            // Obtém o produto pai
+            const product = button.closest('.product-card');
+            const productName = product.querySelector('h3').textContent;
+            
+            showNotification(`${productName} adicionado aos favoritos!`);
+        }
+    }
+    
     // Criação do modal de produto
     const modal = document.createElement('div');
     modal.className = 'product-modal';
     modal.innerHTML = `
-                    <div class="modal-content">
+        <div class="modal-content">
             <span class="close-modal">&times;</span>
             <div class="modal-body">
                 <div class="modal-image">
@@ -1009,24 +1013,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Seleciona o primeiro tamanho por padrão
         if (sizeButtons.length > 0) {
             sizeButtons[0].click();
-        }
-    }
-    
-    // Função para alternar favorito
-    function toggleFavorite(button) {
-        const icon = button.querySelector('i');
-        
-        if (icon.style.color === 'red') {
-            icon.style.color = '';
-            showNotification('Produto removido dos favoritos!');
-        } else {
-            icon.style.color = 'red';
-            
-            // Obtém o produto pai
-            const product = button.closest('.product-card');
-            const productName = product.querySelector('h3').textContent;
-            
-            showNotification(`${productName} adicionado aos favoritos!`);
         }
     }
     
